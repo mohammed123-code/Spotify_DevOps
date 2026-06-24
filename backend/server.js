@@ -6,6 +6,7 @@ import spotifyRoutes from './src/routes/spotifyRoutes.js';
 import playlistRoutes from './src/routes/playlistRoutes.js';
 import favoritesRoutes from './src/routes/favoritesRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
+import pool from './src/config/db.js';
 
 dotenv.config();
 
@@ -43,6 +44,29 @@ app.use('/api/spotify', spotifyRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/user', userRoutes);
+
+// Health check route
+app.get('/api/health', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    connection.release();
+    res.json({ 
+      status: 'OK', 
+      message: 'Spotify Clone API is running smoothly.',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Health check database error:', error.message);
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Spotify Clone API has issues.',
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
 
 // Basic status check route
 app.get('/status', (req, res) => {
