@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     container_name: spotify-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: qwert9003594227Q!
       MYSQL_DATABASE: spotify_clone
     ports:
       - "3306:3306"
@@ -29,7 +29,7 @@ services:
       DB_PORT: 3306
       DB_NAME: spotify_clone
       DB_USER: root
-      DB_PASSWORD: root123
+      DB_PASSWORD: qwert9003594227Q!
       JWT_SECRET: 8f9d0c6bbba3b811802a4b89e87ee10787a2a4b92b67946cf6e792ba265a0b73
       JWT_REFRESH_SECRET: 7f5b3a4a7534df8ef9d1cbe5bb29e0783a48e71df98b4b1a457492cdaef09ab2
       JWT_EXPIRES_IN: 15m
