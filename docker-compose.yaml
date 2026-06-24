@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: spotify-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: spotify_clone
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spotify-network
+
+  backend:
+    build: ./backend
+    container_name: spotify-backend
+    environment:
+      PORT: 5000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: spotify_clone
+      DB_USER: root
+      DB_PASSWORD: root123
+      JWT_SECRET: 8f9d0c6bbba3b811802a4b89e87ee10787a2a4b92b67946cf6e792ba265a0b73
+      JWT_REFRESH_SECRET: 7f5b3a4a7534df8ef9d1cbe5bb29e0783a48e71df98b4b1a457492cdaef09ab2
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      SPOTIFY_CLIENT_ID: d804831a8c8f4890ba1374a3b9f500fa
+      SPOTIFY_CLIENT_SECRET: ef3c276219684f0aa5230c44df65bd30
+      RESEND_API_KEY: re_NTVYkvMJ_DjYWSw7pAgPbeVuyikhjaSzA
+      FROM_EMAIL: onboarding@resend.dev
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - spotify-network
+
+  frontend:
+    build: ./Frontend
+    container_name: spotify-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - spotify-network
+
+volumes:
+  mysql-data:
+
+networks:
+  spotify-network:
+    driver: bridge
