@@ -13,14 +13,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration - allow localhost and 127.0.0.1
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
+// CORS configuration
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowAllOrigins = frontendUrl === '*';
+
+const allowedOrigins = allowAllOrigins ? [] : [
+  frontendUrl,
   'http://127.0.0.1:5173'
 ];
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow all origins if FRONTEND_URL is "*", otherwise check whitelist
+    if (allowAllOrigins || !origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
