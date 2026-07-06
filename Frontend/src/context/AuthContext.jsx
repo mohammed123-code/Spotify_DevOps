@@ -94,31 +94,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
-  // Forgot password OTP request
-  const forgotPassword = async (email) => {
-    try {
-      await api.post('/api/auth/forgot-password', { email });
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to send OTP.'
-      };
-    }
-  };
 
-  // Verify OTP and reset password
-  const verifyOTP = async (email, otp, newPassword) => {
-    try {
-      const res = await api.post('/api/auth/verify-otp', { email, otp, newPassword });
-      return { success: true, message: res.data.message };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to verify OTP.'
-      };
-    }
-  };
 
   // Update profile
   const updateProfile = async (username, profileImage) => {
@@ -160,8 +136,6 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
-      forgotPassword,
-      verifyOTP,
       updateProfile,
       changePassword
     }}>

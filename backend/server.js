@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './src/routes/authRoutes.js';
 import spotifyRoutes from './src/routes/spotifyRoutes.js';
-import playlistRoutes from './src/routes/playlistRoutes.js';
 import favoritesRoutes from './src/routes/favoritesRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import pool from './src/config/db.js';
@@ -13,24 +12,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-const allowAllOrigins = frontendUrl === '*';
-
-const allowedOrigins = allowAllOrigins ? [] : [
-  frontendUrl,
-  'http://127.0.0.1:5173'
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow all origins if FRONTEND_URL is "*", otherwise check whitelist
-    if (allowAllOrigins || !origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Reflect the request origin
   credentials: true
 }));
 
@@ -46,7 +29,6 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/spotify', spotifyRoutes);
-app.use('/api/playlists', playlistRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/user', userRoutes);
 

@@ -5,6 +5,7 @@ import { albumsData, assets, songsData } from '../assets/assets';
 import { PlayerContext } from '../context/PlayerContext';
 import api from '../api';
 
+
 const DisplayAlbum = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const DisplayAlbum = () => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [likedSongIds, setLikedSongIds] = useState(new Set());
+  const [selectedTrack, setSelectedTrack] = useState(null);
 
   // Check if it's a Spotify album (alphanumeric ID) vs a mock album (single digit ID)
   const isSpotifyAlbum = isNaN(Number(id));
@@ -162,7 +164,7 @@ const DisplayAlbum = () => {
             <div className="col-span-2 flex justify-center">
               <img className="m-auto w-4" src={assets.clock_icon} alt="Duration" />
             </div>
-            <div className="col-span-1 text-center">Like</div>
+            <div className="col-span-2 text-center">Actions</div>
           </div>
 
           {/* Songs List */}
@@ -198,7 +200,7 @@ const DisplayAlbum = () => {
                   
                   <p className="col-span-2 text-[14px] text-center">{duration}</p>
                   
-                  <div className="col-span-1 flex justify-center">
+                  <div className="col-span-2 flex justify-center items-center gap-3">
                     <button 
                       onClick={(e) => handleLikeSong(item, e)}
                       className={`hover:scale-110 transition ${isLiked ? 'opacity-100' : 'opacity-40 hover:opacity-100'}`}
@@ -211,11 +213,14 @@ const DisplayAlbum = () => {
                         alt="Like" 
                       />
                     </button>
+
                   </div>
                 </div>
               );
             })}
           </div>
+          
+
         </>
       )}
     </>

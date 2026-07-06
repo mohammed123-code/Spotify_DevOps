@@ -3,10 +3,8 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import DisplayHome from "./DisplayHome";
 import DisplayAlbum from "./DisplayAlbum";
 import Search from "./Search";
-import Playlists from "./Playlists";
-import PlaylistDetail from "./PlaylistDetail";
-import Favorites from "./Favorites";
 import Profile from "./Profile";
+import Favorites from "./Favorites";
 import { albumsData } from "../assets/assets";
 
 function Display() {
@@ -37,8 +35,6 @@ function Display() {
         <Route path="/home" element={<DisplayHome />} />
         <Route path="/album/:id" element={<DisplayAlbum />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/playlists" element={<Playlists />} />
-        <Route path="/playlist/:id" element={<PlaylistDetail />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>

@@ -1,7 +1,6 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
-import { sendOTPEmail } from '../services/emailService.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -11,7 +10,7 @@ const SALT_ROUNDS = 12;
 // Helper to generate access token
 const generateAccessToken = (user) => {
   return jwt.sign(
-    { id: user.id, username: user.username, email: user.email },
+    { id: user.id, username: user.username, email: user.email, is_admin: user.is_admin },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
   );
@@ -51,7 +50,7 @@ export const register = async (req, res) => {
     );
 
     const userId = result.insertId;
-    const user = { id: userId, username, email };
+    const user = { id: userId, username, email, is_admin: 0 };
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
@@ -122,7 +121,8 @@ export const login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        profile_image: user.profile_image
+        profile_image: user.profile_image,
+        is_admin: user.is_admin
       }
     });
   } catch (error) {
@@ -200,7 +200,7 @@ export const refreshToken = async (req, res) => {
     }
 
     // Get user details
-    const [users] = await pool.query('SELECT id, username, email FROM users WHERE id = ?', [decoded.id]);
+    const [users] = await pool.query('SELECT id, username, email, is_admin FROM users WHERE id = ?', [decoded.id]);
     if (users.length === 0) {
       return res.status(401).json({ error: 'User not found.' });
     }
@@ -232,103 +232,4 @@ export const refreshToken = async (req, res) => {
   }
 };
 
-// Forgot Password - generates 6-digit OTP, stores in DB with expiry (10 min), sends email
-export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required.' });
-  }
-
-  try {
-    // Find user
-    const [users] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    
-    // To prevent email enumeration, return success even if user isn't found, but don't do anything.
-    if (users.length === 0) {
-      return res.json({ message: 'If the email exists, an OTP has been sent.' });
-    }
-
-    const userId = users[0].id;
-
-    // Generate a 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Hash the OTP
-    const otpHash = await bcrypt.hash(otp, 12);
-
-    // Save in DB (clean up old OTPs first)
-    await pool.query('DELETE FROM otps WHERE user_id = ?', [userId]);
-    await pool.query(
-      'INSERT INTO otps (user_id, otp_hash, expires_at, attempts) VALUES (?, ?, ?, 0)',
-      [userId, otpHash, expiry]
-    );
-
-    // Send email
-    await sendOTPEmail(email, otp);
-
-    return res.json({ message: 'If the email exists, an OTP has been sent.' });
-  } catch (error) {
-    console.error('[AuthController] Forgot password error:', error);
-    return res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
-// Verify OTP - validates OTP + email, resets password
-export const verifyOTP = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-
-  if (!email || !otp || !newPassword) {
-    return res.status(400).json({ error: 'Email, OTP, and new password are required.' });
-  }
-
-  try {
-    // Find user
-    const [users] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
-      return res.status(400).json({ error: 'Invalid user or OTP.' });
-    }
-
-    const userId = users[0].id;
-
-    // Fetch the latest OTP for this user
-    const [otps] = await pool.query(
-      'SELECT * FROM otps WHERE user_id = ? AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
-      [userId]
-    );
-
-    if (otps.length === 0) {
-      return res.status(400).json({ error: 'OTP has expired or is invalid. Please request a new one.' });
-    }
-
-    const otpRecord = otps[0];
-
-    // Check attempts limit (Max 3 attempts, lock out)
-    if (otpRecord.attempts >= 3) {
-      return res.status(400).json({ error: 'OTP verification locked out due to too many failed attempts. Please request a new code.' });
-    }
-
-    // Increment attempts
-    await pool.query('UPDATE otps SET attempts = attempts + 1 WHERE id = ?', [otpRecord.id]);
-
-    // Compare OTP
-    const isMatch = await bcrypt.compare(otp.trim(), otpRecord.otp_hash);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid OTP code. Please check and try again.' });
-    }
-
-    // Hash the new password
-    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
-
-    // Update user password and delete used OTP and active sessions for security
-    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newPasswordHash, userId]);
-    await pool.query('DELETE FROM otps WHERE user_id = ?', [userId]);
-    await pool.query('DELETE FROM refresh_tokens WHERE user_id = ?', [userId]);
-
-    return res.json({ message: 'Password has been reset successfully. You can now log in.' });
-  } catch (error) {
-    console.error('[AuthController] Verify OTP error:', error);
-    return res.status(500).json({ error: 'Internal server error.' });
-  }
-};

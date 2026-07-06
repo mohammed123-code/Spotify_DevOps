@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const apiBaseURL =
+  import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: apiBaseURL,
 });
 
 // Request Interceptor: Attach Access Token
@@ -40,7 +43,7 @@ api.interceptors.response.use(
 
       try {
         // Request a new access token
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/refresh-token`, {
+        const res = await axios.post(`${apiBaseURL}/api/auth/refresh-token`, {
           refreshToken,
         });
 

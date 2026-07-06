@@ -2,37 +2,49 @@ import React, { useState, useEffect, useContext } from "react";
 import Navbar from "./Navbar";
 import { albumsData, songsData } from "../assets/assets";
 import AlbumItems from "./AlbumItems";
-import SongItems from "./SongItems";
+
 import api from "../api";
 import { PlayerContext } from "../context/PlayerContext";
 
 const DisplayHome = () => {
   const [featuredPlaylists, setFeaturedPlaylists] = useState([]);
   const [newReleases, setNewReleases] = useState([]);
+  const [localAlbums, setLocalAlbums] = useState([]);
+  const [localSongs, setLocalSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { playTrackFromQueue } = useContext(PlayerContext);
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [playlistsRes, releasesRes] = await Promise.all([
+        const [playlistsRes, releasesRes, localAlbumsRes, localSongsRes] = await Promise.all([
           api.get('/api/spotify/featured-playlists').catch(() => null),
-          api.get('/api/spotify/new-releases').catch(() => null)
+          api.get('/api/spotify/new-releases').catch(() => null),
+          api.get('/api/admin/albums').catch(() => null),
+          api.get('/api/admin/songs').catch(() => null)
         ]);
 
         if (playlistsRes && playlistsRes.data?.playlists?.items) {
           setFeaturedPlaylists(playlistsRes.data.playlists.items);
         } else {
-          setFeaturedPlaylists(albumsData); // Fallback to mock
+          setFeaturedPlaylists(albumsData);
         }
 
         if (releasesRes && releasesRes.data?.albums?.items) {
           setNewReleases(releasesRes.data.albums.items);
         } else {
-          setNewReleases(songsData); // Fallback to mock
+          setNewReleases(songsData);
+        }
+
+        if (localAlbumsRes && localAlbumsRes.data && localAlbumsRes.data.length > 0) {
+          setLocalAlbums(localAlbumsRes.data);
+        }
+
+        if (localSongsRes && localSongsRes.data && localSongsRes.data.length > 0) {
+          setLocalSongs(localSongsRes.data);
         }
       } catch (error) {
-        console.warn("Spotify API fetch failed, using local mock fallbacks:", error);
+        console.warn("API fetch failed, using fallback data:", error);
         setFeaturedPlaylists(albumsData);
         setNewReleases(songsData);
       } finally {
@@ -44,20 +56,19 @@ const DisplayHome = () => {
   }, []);
 
   const handlePlaySong = (track, trackList) => {
-    // If it's mock track (doesn't have preview_url and album metadata formatted the same way)
-    if (track.file) {
-      // Local mock song
+    // If it's a local database track
+    if (track.audio_url) {
       const formattedQueue = trackList.map(item => ({
         id: String(item.id),
         name: item.name,
-        artist: "Local Artist",
-        file: item.file,
-        image: item.image,
-        duration: 30
+        artist: item.artist,
+        file: item.audio_url,
+        image: item.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100',
+        duration: Math.floor(item.duration_ms / 1000) || 30
       }));
       const index = trackList.findIndex(item => item.id === track.id);
       playTrackFromQueue(formattedQueue, index !== -1 ? index : 0);
-    } else {
+    } else if (track.file) {
       // Spotify track
       const formattedQueue = trackList.map(item => ({
         id: item.id,
@@ -76,6 +87,26 @@ const DisplayHome = () => {
     <>
       <Navbar />
       
+      {/* Community Uploads Section */}
+      {localSongs.length > 0 && (
+        <div className="mb-8">
+          <h1 className="my-5 font-bold text-2xl text-[#1DB954]">Community Uploads</h1>
+          <div className="flex overflow-auto gap-4 pb-2 scrollbar-hide">
+            {localSongs.map((item) => (
+              <div 
+                key={`local-${item.id}`} 
+                onClick={() => handlePlaySong(item, localSongs)}
+                className="min-w-[180px] max-w-[180px] p-4 px-3 rounded-lg hover:bg-[#ffffff26] cursor-pointer transition flex flex-col gap-2 bg-[#181818] border border-neutral-800"
+              >
+                <img className="w-full aspect-square object-cover rounded shadow-md" src={item.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200'} alt={item.name} />
+                <p className="font-bold text-sm truncate text-white">{item.name}</p>
+                <p className="text-xs text-neutral-400 truncate">{item.artist}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Featured Playlists Section */}
       <div className="mb-8">
         <h1 className="my-5 font-bold text-2xl">Featured Playlists</h1>

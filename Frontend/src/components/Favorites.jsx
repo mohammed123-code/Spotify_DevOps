@@ -4,9 +4,11 @@ import api from '../api';
 import { PlayerContext } from '../context/PlayerContext';
 import { assets } from '../assets/assets';
 
+
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTrack, setSelectedTrack] = useState(null);
   const { playTrackFromQueue } = useContext(PlayerContext);
 
   const fetchFavorites = async () => {
@@ -28,7 +30,7 @@ const Favorites = () => {
     if (favorites.length === 0) return;
 
     const formattedQueue = favorites.map(item => ({
-      id: item.spotify_track_id,
+      id: item.track_id || item.spotify_track_id,
       name: item.track_name,
       artist: item.artist_name,
       file: item.preview_url,
@@ -39,11 +41,11 @@ const Favorites = () => {
     playTrackFromQueue(formattedQueue, trackIndex);
   };
 
-  const handleRemoveFavorite = async (spotifyTrackId) => {
+  const handleRemoveFavorite = async (trackId) => {
     try {
-      await api.delete(`/api/favorites/${spotifyTrackId}`);
+      await api.delete(`/api/favorites/${trackId}`);
       // Filter out locally
-      setFavorites(prev => prev.filter(t => t.spotify_track_id !== spotifyTrackId));
+      setFavorites(prev => prev.filter(t => (t.track_id || t.spotify_track_id) !== trackId));
     } catch (error) {
       console.error('Failed to remove from favorites:', error);
     }
@@ -81,7 +83,7 @@ const Favorites = () => {
             <div className="col-span-1 flex justify-center">
               <img className="w-4" src={assets.clock_icon} alt="Duration" />
             </div>
-            <div className="col-span-1 text-right pr-2">Actions</div>
+            <div className="col-span-1 text-center pr-2">Actions</div>
           </div>
 
           {favorites.length === 0 ? (
@@ -116,18 +118,22 @@ const Favorites = () => {
                     {String(Math.floor(((track.duration_ms || 0) % 60000) / 1000)).padStart(2, '0')}
                   </div>
 
-                  <div className="col-span-1 text-right pr-2">
+                  <div className="col-span-1 flex justify-center items-center gap-3">
                     <button 
-                      onClick={() => handleRemoveFavorite(track.spotify_track_id)}
+                      onClick={() => handleRemoveFavorite(track.track_id || track.spotify_track_id)}
                       className="text-red-500 hover:text-red-700 text-xs font-semibold hover:underline"
+                      title="Remove"
                     >
                       Remove
                     </button>
+
                   </div>
                 </div>
               ))}
             </div>
           )}
+          
+
         </div>
       </div>
     </>

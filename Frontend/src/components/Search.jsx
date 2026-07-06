@@ -4,11 +4,13 @@ import api from '../api';
 import { PlayerContext } from '../context/PlayerContext';
 import { songsData } from '../assets/assets';
 
+
 const Search = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isFallbackMode, setIsFallbackMode] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState(null);
   const { playTrackFromQueue } = useContext(PlayerContext);
 
   const handleSearch = async (e) => {
@@ -150,6 +152,7 @@ const Search = () => {
                         {Math.floor((track.duration_ms || 240000) / 60000)}:
                         {String(Math.floor(((track.duration_ms || 240000) % 60000) / 1000)).padStart(2, '0')}
                       </span>
+
                     </div>
                   </div>
                 ))}
@@ -206,6 +209,8 @@ const Search = () => {
           <p className="text-xs mt-1">Search for songs, artists, or albums above.</p>
         </div>
       )}
+      
+
     </>
   );
 };

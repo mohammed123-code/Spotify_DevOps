@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import pool from '../config/db.js';
 
 const SALT_ROUNDS = 12;
@@ -8,7 +8,7 @@ export const getProfile = async (req, res) => {
   const userId = req.user.id;
   try {
     const [users] = await pool.query(
-      'SELECT id, username, email, profile_image, created_at FROM users WHERE id = ?',
+      'SELECT id, username, email, profile_image, is_admin, created_at FROM users WHERE id = ?',
       [userId]
     );
 

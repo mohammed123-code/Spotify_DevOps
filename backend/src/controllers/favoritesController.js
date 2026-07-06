@@ -18,17 +18,18 @@ export const getFavorites = async (req, res) => {
 // Add track to favorites
 export const addFavorite = async (req, res) => {
   const userId = req.user.id;
-  const { spotify_track_id, track_name, artist_name, album_name, cover_url, preview_url, duration_ms } = req.body;
+  const { spotify_track_id, track_id, track_name, artist_name, album_name, cover_url, preview_url, duration_ms } = req.body;
+  const finalTrackId = track_id || spotify_track_id;
 
-  if (!spotify_track_id || !track_name || !artist_name || !duration_ms) {
-    return res.status(400).json({ error: 'Missing track details (spotify_track_id, track_name, artist_name, duration_ms are required).' });
+  if (!finalTrackId || !track_name || !artist_name || duration_ms === undefined) {
+    return res.status(400).json({ error: 'Missing track details (track_id, track_name, artist_name, duration_ms are required).' });
   }
 
   try {
     // Check if track is already in favorites
     const [existing] = await pool.query(
-      'SELECT id FROM favorites WHERE user_id = ? AND spotify_track_id = ?',
-      [userId, spotify_track_id]
+      'SELECT id FROM favorites WHERE user_id = ? AND track_id = ?',
+      [userId, finalTrackId]
     );
 
     if (existing.length > 0) {
@@ -36,9 +37,9 @@ export const addFavorite = async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO favorites (user_id, spotify_track_id, track_name, artist_name, album_name, cover_url, preview_url, duration_ms) 
+      `INSERT INTO favorites (user_id, track_id, track_name, artist_name, album_name, cover_url, preview_url, duration_ms) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, spotify_track_id, track_name, artist_name, album_name || '', cover_url || '', preview_url || '', duration_ms]
+      [userId, finalTrackId, track_name, artist_name, album_name || '', cover_url || '', preview_url || '', duration_ms]
     );
 
     return res.status(201).json({ message: 'Track added to favorites.' });
@@ -51,11 +52,11 @@ export const addFavorite = async (req, res) => {
 // Remove track from favorites
 export const removeFavorite = async (req, res) => {
   const userId = req.user.id;
-  const { trackId } = req.params; // spotify_track_id
+  const { trackId } = req.params; // track_id
 
   try {
     const [result] = await pool.query(
-      'DELETE FROM favorites WHERE user_id = ? AND spotify_track_id = ?',
+      'DELETE FROM favorites WHERE user_id = ? AND track_id = ?',
       [userId, trackId]
     );
 

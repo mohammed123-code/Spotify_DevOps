@@ -5,8 +5,6 @@ import Opening from './components/Opening';
 import Landing from './components/Landing';
 import Login from './components/Login';
 import Register from './components/Register';
-import ForgotPassword from './components/ForgotPassword';
-import VerifyOTP from './components/VerifyOTP';
 import { AuthContext } from './context/AuthContext';
 
 function App() {
@@ -39,8 +37,6 @@ function App() {
         <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
         
         {/* Dashboard views wrapped in Home layout */}
         <Route path="/*" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
