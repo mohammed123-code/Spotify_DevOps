@@ -1,86 +1,163 @@
-# Spotify Clone 🎧
+# Spotify Clone — Full-Stack DevOps Project
 
-![icon_logo](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/7b010aed-1466-46e3-8636-891bf59dcb25)
-
-Welcome to the **Spotify Clone** project! This repository showcases a sleek and responsive clone of Spotify, built using **React** and **Tailwind CSS**. It replicates Spotify's user-friendly interface and offers a dynamic and responsive design experience.
-
-For more about **BTree Systems**, visit [our website](https://btreesystems.com).
+A full-stack Spotify-inspired music streaming application built with React, Node.js, MySQL, and Cloudinary. The entire stack is containerized with Docker Compose for easy local development and deployment.
 
 ---
 
-## Features
-
-- 🎨 **Modern UI**: Inspired by Spotify's design, built for an immersive user experience.  
-- 📱 **Responsive Design**: Tailored for desktop, tablet, and mobile devices using Tailwind CSS.  
-- ⚡ **Dynamic Components**: React-based components for seamless functionality.  
-
----
-
-## Folder Structure
-
-```plaintext
-SpotifyClone/
-├── public/                 # Static files and assets
-│   └── ...                 # Add your static files here
-├── src/                    # Main application source code
-│   ├── assets/             # Images, icons, and other media
-│   ├── components/         # Reusable React components
-│   ├── pages/              # Page components
-│   ├── App.jsx             # Root component
-│   ├── index.jsx           # Entry point
-│   └── ...                 # Other source files
-├── .gitignore              # Git ignore file
-├── LICENSE                 # License information
-├── README.md               # Project documentation
-├── package.json            # Project metadata and dependencies
-├── postcss.config.js       # PostCSS configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-└── vite.config.js          # Vite configuration
+## Project Structure
 
 ```
-
-## Installation
-Follow these steps to set up and run the project locally:
-
-1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/BTREE-SYSTEMS/SpotifyClone.git
-
-2. **Navigate to the Project Directory**  
-   ```bash
-   cd SpotifyClone
-
-3. **Install Dependencies**  
-   ```bash
-   npm install
-
-4. **Start the Development Server**  
-   ```bash
-   npm start
+Spotify_DevOps/
+├── frontend/        # React user-facing app (Vite + Tailwind)
+├── admin/           # React admin dashboard (Vite + Tailwind)
+├── backend/         # Node.js REST API (Express + Sequelize + MySQL)
+├── docker-compose.yml
+└── .env.example
+```
 
 ---
 
-### Usage  
-Once the server starts, open your web browser and go to http://localhost:3000 to view the project in action.
+## Services
 
-### Screenshots  
-
-*Homepage*  
-![Image](https://github.com/user-attachments/assets/4367fe3d-99ba-4905-a35e-a8cef695ecf9)
-
-*Music Player*
-![Image](https://github.com/user-attachments/assets/3b044736-6779-4176-a617-c968af016973) 
-
+| Service    | Description                        | Local Port |
+|------------|------------------------------------|------------|
+| `frontend` | User-facing music player app       | `8080`     |
+| `admin`    | Admin dashboard (manage songs/albums) | `8081`  |
+| `backend`  | REST API (Express + MySQL)         | `4000`     |
+| `mysql`    | MySQL 8.0 database                 | `3307`     |
 
 ---
 
-### Our Other Social Platforms
+## Tech Stack
 
-- ![Untitled design (9)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/33ae95e1-c4d7-47d3-a160-90a6f060896b) Youtube - https://bit.ly/Youtubebtree
-- ![icon_logo](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/948141f8-8cdc-4ef1-9615-0fb06cd35574) Instagram - https://bit.ly/Instagrambtree 
-- ![Untitled design (10)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/51189b66-5f75-43fc-a992-dca4805152a0) Facebook - https://bit.ly/btreefacebookpage 
-- ![Untitled design (11)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/0177cf07-7034-41fb-a41c-e292b2eea000) LinkedIn - https://bit.ly/Linkedinbtree 
-- ![Untitled design (13)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/81b02b10-6291-4aeb-8f14-d3f296f2698b) Twitter - https://bit.ly/Twitterbtree 
+**Frontend & Admin**
+- React 18/19, React Router v7
+- Vite, Tailwind CSS
+- Axios
+- Served via Nginx in production containers
 
+**Backend**
+- Node.js, Express
+- Sequelize ORM + MySQL 2
+- Cloudinary (audio & image uploads)
+- JWT authentication, bcryptjs
+- Multer (multipart file handling)
 
--- varunDev#
+**Infrastructure**
+- Docker & Docker Compose
+- MySQL 8.0 with persistent volume
+- Nginx (frontend/admin static serving)
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/) and Docker Compose installed
+- A [Cloudinary](https://cloudinary.com/) account (free tier works)
+
+### 1. Clone the repository
+
+```bash
+git clone <repo-url>
+cd Spotify_DevOps
+```
+
+### 2. Configure environment variables
+
+Copy the backend example file and fill in your values:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+```env
+MYSQL_HOST=mysql
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=root
+MYSQL_DATABASE=spotify_clone
+
+CLOUDINARY_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_SECRET_KEY=your_cloudinary_secret_key
+
+JWT_SECRET=your_jwt_secret_key
+PORT=4000
+```
+
+### 3. Run with Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+| URL                         | Service         |
+|-----------------------------|-----------------|
+| http://localhost:8080        | Frontend app    |
+| http://localhost:8081        | Admin dashboard |
+| http://localhost:4000        | Backend API     |
+
+---
+
+## Local Development (without Docker)
+
+### Backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env   # fill in your values
+npm run dev            # starts with nodemon
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+### Admin
+
+```bash
+cd admin
+npm install
+npm run dev            # http://localhost:5174
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint           | Description              |
+|--------|--------------------|--------------------------|
+| GET    | `/`                | Health check             |
+| GET    | `/api/songs`       | List all songs           |
+| POST   | `/api/songs`       | Upload a new song        |
+| DELETE | `/api/songs/:id`   | Delete a song            |
+| GET    | `/api/albums`      | List all albums          |
+| POST   | `/api/albums`      | Create a new album       |
+| DELETE | `/api/albums/:id`  | Delete an album          |
+| POST   | `/api/auth/register` | Register a user        |
+| POST   | `/api/auth/login`  | Login and get JWT token  |
+
+---
+
+## File Uploads
+
+Audio files and cover images are uploaded directly to **Cloudinary**. Multer handles the multipart form data on the backend, streams files to Cloudinary, then stores the resulting URLs in MySQL via Sequelize.
+
+---
+
+## Database
+
+MySQL 8.0 runs in its own container with a named Docker volume (`mysql_data`) so data persists across restarts. Sequelize auto-syncs the models on startup.
+
+---
+
+## License
+
+MIT

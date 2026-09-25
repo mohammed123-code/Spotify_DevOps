@@ -1,16 +1,98 @@
-# React + Vite
+# Spotify Clone — Admin Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The admin panel for the Spotify Clone project. It lets you manage songs and albums — upload new tracks, create albums, and delete content — all connected to the shared backend API.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+- **React 19** with React Router v7
+- **Vite** (build tool)
+- **Tailwind CSS v4** (styling)
+- **Axios** (API communication)
+- **Oxlint** (linting)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```
+admin/
+├── public/             # Static assets & favicon
+├── src/
+│   ├── components/
+│   │   └── Sidebar.jsx     # Navigation sidebar
+│   ├── pages/
+│   │   ├── AddSong.jsx     # Upload a new song
+│   │   ├── AddAlbum.jsx    # Create a new album
+│   │   ├── ListSongs.jsx   # View & delete songs
+│   │   └── ListAlbums.jsx  # View & delete albums
+│   ├── utils/
+│   │   └── api.js          # Axios instance (base URL config)
+│   ├── App.jsx
+│   └── main.jsx
+├── nginx.conf          # Nginx config for Docker production build
+├── Dockerfile
+└── vite.config.js
+```
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 18+
+- The backend running at `http://localhost:4000`
+
+### Setup
+
+```bash
+npm install
+npm run dev
+```
+
+The app starts at **http://localhost:5174** (or the next available Vite port).
+
+### Environment
+
+The backend URL is injected at build time via a Vite build arg. For local dev, it defaults to `http://localhost:4000`. To override, set `VITE_BACKEND_URL` in a `.env` file:
+
+```env
+VITE_BACKEND_URL=http://localhost:4000
+```
+
+---
+
+## Running with Docker
+
+The admin container is managed by the root `docker-compose.yml`. To build and run it in isolation:
+
+```bash
+docker build --build-arg VITE_BACKEND_URL=http://localhost:4000 -t spotify-admin .
+docker run -p 8081:80 spotify-admin
+```
+
+Access it at **http://localhost:8081**.
+
+---
+
+## Features
+
+| Page          | Description                                      |
+|---------------|--------------------------------------------------|
+| Add Song      | Upload an MP3/WAV with cover image and metadata  |
+| Add Album     | Create a named album with cover art              |
+| List Songs    | Browse all songs, delete individual tracks       |
+| List Albums   | Browse all albums, delete with confirmation      |
+
+---
+
+## Scripts
+
+| Command         | Description                      |
+|-----------------|----------------------------------|
+| `npm run dev`   | Start development server         |
+| `npm run build` | Production build to `dist/`      |
+| `npm run lint`  | Run Oxlint                       |
+| `npm run preview` | Preview production build       |
