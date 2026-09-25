@@ -4,16 +4,19 @@ import "./index.css";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import PlayerContextProvider from "./context/PlayerContext.jsx";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import AuthContextProvider from "./context/AuthContext.jsx";
+import LibraryContextProvider from "./context/LibraryContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
+      <AuthContextProvider>
         <PlayerContextProvider>
-          <App />
+          <LibraryContextProvider>
+            <App />
+          </LibraryContextProvider>
         </PlayerContextProvider>
-      </AuthProvider>
+      </AuthContextProvider>
     </BrowserRouter>
   </StrictMode>
 );

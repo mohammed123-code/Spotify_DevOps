@@ -1,45 +1,53 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from './components/Home';
-import Opening from './components/Opening';
-import Landing from './components/Landing';
-import Login from './components/Login';
-import Register from './components/Register';
-import { AuthContext } from './context/AuthContext';
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Home from "./components/Home";
+import Opening from "./components/Opening";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import { useAuth } from "./context/AuthContext";
+
+// Protected route — redirects to /login if not authenticated
+const ProtectedRoute = ({ children }) => {
+  const { user, authLoading } = useAuth();
+  if (authLoading) return (
+    <div style={{
+      height: "100vh", background: "#121212",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: "#1DB954", fontSize: "24px",
+    }}>
+      🎵
+    </div>
+  );
+  return user ? children : <Navigate to="/login" replace />;
+};
 
 function App() {
   const [isSplashVisible, setSplashVisible] = useState(true);
-  const { isAuthenticated, loading } = useContext(AuthContext);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSplashVisible(false);
-    }, 4000);
-
+    const timer = setTimeout(() => setSplashVisible(false), 3000);
     return () => clearTimeout(timer);
   }, []);
-
-  if (loading) {
-    return (
-      <div className="h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-bold text-lg tracking-wider text-neutral-400">Loading Spotify...</p>
-      </div>
-    );
-  }
 
   return (
     <>
       {isSplashVisible && <Opening />}
-      
       <Routes>
-        {/* Full-screen auth & landing views */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Dashboard views wrapped in Home layout */}
-        <Route path="/*" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
+        {/* Public routes */}
+        <Route path="/login"           element={<Login />} />
+        <Route path="/signup"          element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* Protected main app */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );

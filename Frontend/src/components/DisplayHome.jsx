@@ -1,166 +1,126 @@
-import React, { useState, useEffect, useContext } from "react";
-import Navbar from "./Navbar";
-import { albumsData, songsData } from "../assets/assets";
+import React, { useContext, useMemo, useState } from "react";
 import AlbumItems from "./AlbumItems";
-
-import api from "../api";
+import SongItems from "./SongItems";
 import { PlayerContext } from "../context/PlayerContext";
 
+const chips = ["All", "Music", "Podcasts"];
+
 const DisplayHome = () => {
-  const [featuredPlaylists, setFeaturedPlaylists] = useState([]);
-  const [newReleases, setNewReleases] = useState([]);
-  const [localAlbums, setLocalAlbums] = useState([]);
-  const [localSongs, setLocalSongs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { playTrackFromQueue } = useContext(PlayerContext);
+  const { songsData, albumsData, loading, error, searchQuery } = useContext(PlayerContext);
+  const [chip, setChip] = useState("All");
 
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const [playlistsRes, releasesRes, localAlbumsRes, localSongsRes] = await Promise.all([
-          api.get('/api/spotify/featured-playlists').catch(() => null),
-          api.get('/api/spotify/new-releases').catch(() => null),
-          api.get('/api/admin/albums').catch(() => null),
-          api.get('/api/admin/songs').catch(() => null)
-        ]);
+  const q = searchQuery.trim().toLowerCase();
 
-        if (playlistsRes && playlistsRes.data?.playlists?.items) {
-          setFeaturedPlaylists(playlistsRes.data.playlists.items);
-        } else {
-          setFeaturedPlaylists(albumsData);
-        }
+  const albums = useMemo(() => {
+    if (!q) return albumsData;
+    return albumsData.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.desc?.toLowerCase().includes(q)
+    );
+  }, [albumsData, q]);
 
-        if (releasesRes && releasesRes.data?.albums?.items) {
-          setNewReleases(releasesRes.data.albums.items);
-        } else {
-          setNewReleases(songsData);
-        }
+  const songs = useMemo(() => {
+    if (!q) return songsData;
+    return songsData.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.desc?.toLowerCase().includes(q) ||
+        s.album?.toLowerCase().includes(q)
+    );
+  }, [songsData, q]);
 
-        if (localAlbumsRes && localAlbumsRes.data && localAlbumsRes.data.length > 0) {
-          setLocalAlbums(localAlbumsRes.data);
-        }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-400 text-lg animate-pulse">Loading music...</div>
+      </div>
+    );
+  }
 
-        if (localSongsRes && localSongsRes.data && localSongsRes.data.length > 0) {
-          setLocalSongs(localSongsRes.data);
-        }
-      } catch (error) {
-        console.warn("API fetch failed, using fallback data:", error);
-        setFeaturedPlaylists(albumsData);
-        setNewReleases(songsData);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHomeData();
-  }, []);
-
-  const handlePlaySong = (track, trackList) => {
-    // If it's a local database track
-    if (track.audio_url) {
-      const formattedQueue = trackList.map(item => ({
-        id: String(item.id),
-        name: item.name,
-        artist: item.artist,
-        file: item.audio_url,
-        image: item.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100',
-        duration: Math.floor(item.duration_ms / 1000) || 30
-      }));
-      const index = trackList.findIndex(item => item.id === track.id);
-      playTrackFromQueue(formattedQueue, index !== -1 ? index : 0);
-    } else if (track.file) {
-      // Spotify track
-      const formattedQueue = trackList.map(item => ({
-        id: item.id,
-        name: item.name,
-        artist: item.artists?.map(a => a.name).join(', ') || 'Unknown',
-        file: item.preview_url,
-        image: item.images?.[0]?.url || item.album?.images?.[0]?.url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100',
-        duration: Math.floor(item.duration_ms / 1000) || 30
-      }));
-      const index = trackList.findIndex(item => item.id === track.id);
-      playTrackFromQueue(formattedQueue, index !== -1 ? index : 0);
-    }
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-400 text-sm">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <>
-      <Navbar />
-      
-      {/* Community Uploads Section */}
-      {localSongs.length > 0 && (
-        <div className="mb-8">
-          <h1 className="my-5 font-bold text-2xl text-[#1DB954]">Community Uploads</h1>
-          <div className="flex overflow-auto gap-4 pb-2 scrollbar-hide">
-            {localSongs.map((item) => (
-              <div 
-                key={`local-${item.id}`} 
-                onClick={() => handlePlaySong(item, localSongs)}
-                className="min-w-[180px] max-w-[180px] p-4 px-3 rounded-lg hover:bg-[#ffffff26] cursor-pointer transition flex flex-col gap-2 bg-[#181818] border border-neutral-800"
-              >
-                <img className="w-full aspect-square object-cover rounded shadow-md" src={item.cover_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200'} alt={item.name} />
-                <p className="font-bold text-sm truncate text-white">{item.name}</p>
-                <p className="text-xs text-neutral-400 truncate">{item.artist}</p>
+      <div className="flex items-center gap-2 mb-6 sticky top-0 bg-[#121212] py-1 z-10">
+        {chips.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setChip(c)}
+            className="px-4 py-1.5 rounded-full text-sm font-semibold"
+            style={{
+              background: chip === c ? "#fff" : "#2a2a2a",
+              color: chip === c ? "#000" : "#fff",
+            }}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+
+      {chip === "Podcasts" ? (
+        <p className="text-[#b3b3b3] text-sm mt-8">No podcasts yet.</p>
+      ) : (
+        <>
+          {q && (
+            <p className="text-[#b3b3b3] text-sm mb-4">
+              Results for &quot;{searchQuery}&quot;
+            </p>
+          )}
+
+          <div className="mb-8">
+            <div className="flex items-end justify-between mb-4">
+              <h1 className="font-bold text-2xl">{q ? "Albums" : "Featured Albums"}</h1>
+              {!q && albums.length > 0 && (
+                <span className="text-sm font-bold text-[#b3b3b3] hover:underline cursor-pointer">
+                  Show all
+                </span>
+              )}
+            </div>
+            {albums.length === 0 ? (
+              <p className="text-gray-500 text-sm">No albums found.</p>
+            ) : (
+              <div className="flex overflow-auto gap-2 pb-2">
+                {albums.map((item) => (
+                  <AlbumItems
+                    key={item.id}
+                    name={item.name}
+                    desc={item.desc}
+                    id={item.id}
+                    image={item.image}
+                  />
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
 
-      {/* Featured Playlists Section */}
-      <div className="mb-8">
-        <h1 className="my-5 font-bold text-2xl">Featured Playlists</h1>
-        <div className="flex overflow-auto gap-4 pb-2 scrollbar-hide">
-          {featuredPlaylists.map((item, index) => {
-            const id = item.id !== undefined ? item.id : index;
-            const name = item.name;
-            const desc = item.description || item.desc || "Spotify playlist";
-            const image = item.images?.[0]?.url || item.image;
-            
-            return (
-              <AlbumItems
-                key={id}
-                name={name}
-                desc={desc}
-                id={id}
-                image={image}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* New Releases Section */}
-      <div className="mb-8">
-        <h1 className="my-5 font-bold text-2xl">New Releases & Hot Tracks</h1>
-        <div className="flex overflow-auto gap-4 pb-2 scrollbar-hide">
-          {newReleases.map((item, index) => {
-            const id = item.id !== undefined ? item.id : index;
-            const name = item.name;
-            const desc = item.artists?.map(a => a.name).join(', ') || item.desc || "Trending release";
-            const image = item.images?.[0]?.url || item.album?.images?.[0]?.url || item.image;
-
-            return (
-              <div 
-                key={id} 
-                onClick={() => {
-                  if (item.file) {
-                    handlePlaySong(item, newReleases);
-                  } else {
-                    // Navigate to album details page for Spotify albums
-                    window.location.href = `/album/${id}`;
-                  }
-                }}
-                className="min-w-[180px] p-4 px-3 rounded-lg hover:bg-[#ffffff26] cursor-pointer transition flex flex-col gap-2 bg-[#181818]"
-              >
-                <img className="w-full aspect-square object-cover rounded shadow-md" src={image} alt={name} />
-                <p className="font-bold text-sm truncate text-white">{name}</p>
-                <p className="text-xs text-neutral-400 truncate">{desc}</p>
+          <div className="mb-8">
+            <div className="flex items-end justify-between mb-4">
+              <h1 className="font-bold text-2xl">{q ? "Songs" : "Recently Added"}</h1>
+            </div>
+            {songs.length === 0 ? (
+              <p className="text-gray-500 text-sm">No songs found.</p>
+            ) : (
+              <div className="flex overflow-auto gap-2 pb-2">
+                {songs.map((item) => (
+                  <SongItems
+                    key={item.id}
+                    name={item.name}
+                    desc={item.desc}
+                    id={item.id}
+                    image={item.image}
+                  />
+                ))}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 };

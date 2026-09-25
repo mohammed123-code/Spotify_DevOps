@@ -1,76 +1,71 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import authRoutes from './src/routes/authRoutes.js';
-import spotifyRoutes from './src/routes/spotifyRoutes.js';
-import favoritesRoutes from './src/routes/favoritesRoutes.js';
-import userRoutes from './src/routes/userRoutes.js';
-import pool from './src/config/db.js';
-
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { connectDB } = require("./src/config/db");
+const connectCloudinary = require("./src/config/cloudinary");
+const songRoutes  = require("./src/routes/songRoutes");
+const albumRoutes = require("./src/routes/albumRoutes");
+const authRoutes  = require("./src/routes/authRoutes");
+const fs = require("fs");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
-app.use(cors({
-  origin: true, // Reflect the request origin
-  credentials: true
-}));
+// Create tmp directory for multer uploads
+if (!fs.existsSync("tmp")) {
+  fs.mkdirSync("tmp");
+}
 
-// Body parser
+// Connect to MySQL and Cloudinary
+connectDB();
+connectCloudinary();
+
+// Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
+      "http://localhost:5177",
+      "http://localhost:80",
+      "http://localhost",
+      "http://localhost:8080",
+      "http://localhost:8081",
+    ],
+    credentials: true,
+  })
+);
 
-// Logging Middleware for debugging API calls
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
+// Health check
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "🎵 Spotify Clone API is running!",
+    version: "1.0.0",
+    database: "MySQL",
+  });
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/spotify', spotifyRoutes);
-app.use('/api/favorites', favoritesRoutes);
-app.use('/api/user', userRoutes);
+// API Routes
+app.use("/api/songs",  songRoutes);
+app.use("/api/albums", albumRoutes);
+app.use("/api/auth",   authRoutes);
 
-// Health check route
-app.get('/api/health', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    connection.release();
-    res.json({ 
-      status: 'OK', 
-      message: 'Spotify Clone API is running smoothly.',
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Health check database error:', error.message);
-    res.status(500).json({ 
-      status: 'ERROR', 
-      message: 'Spotify Clone API has issues.',
-      database: 'disconnected',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Basic status check route
-app.get('/status', (req, res) => {
-  res.json({ status: 'OK', message: 'Spotify Clone API is running smoothly.' });
-});
-
-// 404 handler
+// 404 Handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found.' });
+  res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// Error handling middleware
+// Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('[ServerError]', err);
-  res.status(500).json({ error: 'An internal server error occurred.' });
+  console.error("Global Error:", err.stack);
+  res.status(500).json({ success: false, message: err.message });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Server] Spotify Clone Backend running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

@@ -1,173 +1,86 @@
-# Full-Stack Spotify Clone
+# Spotify Clone 🎧
 
-A production-ready, full-stack Spotify clone application built with a modern frontend interface and a scalable Express backend, integrated with MySQL database storage and the Spotify API.
+![icon_logo](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/7b010aed-1466-46e3-8636-891bf59dcb25)
 
-## Project Structure
+Welcome to the **Spotify Clone** project! This repository showcases a sleek and responsive clone of Spotify, built using **React** and **Tailwind CSS**. It replicates Spotify's user-friendly interface and offers a dynamic and responsive design experience.
 
-```text
-spotify-devops-project/
-├── Frontend/      # React + Vite + Tailwind CSS User Interface
-├── backend/       # Node.js + Express.js API Server
-└── database/      # MySQL Schema and Seed SQL files
+For more about **BTree Systems**, visit [our website](https://btreesystems.com).
+
+---
+
+## Features
+
+- 🎨 **Modern UI**: Inspired by Spotify's design, built for an immersive user experience.  
+- 📱 **Responsive Design**: Tailored for desktop, tablet, and mobile devices using Tailwind CSS.  
+- ⚡ **Dynamic Components**: React-based components for seamless functionality.  
+
+---
+
+## Folder Structure
+
+```plaintext
+SpotifyClone/
+├── public/                 # Static files and assets
+│   └── ...                 # Add your static files here
+├── src/                    # Main application source code
+│   ├── assets/             # Images, icons, and other media
+│   ├── components/         # Reusable React components
+│   ├── pages/              # Page components
+│   ├── App.jsx             # Root component
+│   ├── index.jsx           # Entry point
+│   └── ...                 # Other source files
+├── .gitignore              # Git ignore file
+├── LICENSE                 # License information
+├── README.md               # Project documentation
+├── package.json            # Project metadata and dependencies
+├── postcss.config.js       # PostCSS configuration
+├── tailwind.config.js      # Tailwind CSS configuration
+└── vite.config.js          # Vite configuration
+
 ```
 
----
+## Installation
+Follow these steps to set up and run the project locally:
 
-## Tech Stack
-
-### Frontend
-- **Framework**: React.js (via Vite)
-- **Routing**: React Router DOM (v7)
-- **Styling**: Tailwind CSS & Vanilla CSS
-- **API Client**: Axios (configured with automated JWT token refreshing interceptors)
-- **State Management**: React Context API (AuthContext and PlayerContext)
-
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database Driver**: MySQL2 (with connection pooling)
-- **Security**: JWT (Access + Refresh tokens), bcrypt password hashing, express-rate-limit (brute force protection)
-- **Email Delivery**: Resend SDK (with local logging fallback for dev sandbox environment)
-- **External Integration**: Spotify API Proxy (utilizing Client Credentials Grant Flow)
-
-### Database
-- **Engine**: MySQL (v8.0+)
-- **Tables**: `users`, `otps`, `playlists`, `playlist_tracks`, `favorites`, `refresh_tokens`
-
----
-
-## Local Setup Instructions
-
-Follow these step-by-step instructions to get the application running locally:
-
-### 1. MySQL Database Setup
-
-1. Open your terminal and connect to your MySQL instance:
+1. **Clone the Repository**  
    ```bash
-   mysql -u root -p
-   ```
-2. Run the schema script to create the database and tables:
+   git clone https://github.com/BTREE-SYSTEMS/SpotifyClone.git
+
+2. **Navigate to the Project Directory**  
    ```bash
-   source database/schema.sql;
-   ```
-3. Run the seed script to import test data:
-   ```bash
-   source database/seed.sql;
-   ```
+   cd SpotifyClone
 
-*Alternatively, import `database/schema.sql` and `database/seed.sql` inside your graphic database editor like MySQL Workbench or phpMyAdmin.*
-
----
-
-### 2. Backend Installation and Run
-
-1. Navigate to the `backend` folder:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
+3. **Install Dependencies**  
    ```bash
    npm install
-   ```
-3. Configure the environment variables in a `.env` file (copied from `.env.example`):
+
+4. **Start the Development Server**  
    ```bash
-   cp .env.example .env
-   ```
-   *Make sure database credentials and Spotify keys are filled.*
-4. Start the development server (runs on port 5000 by default):
-   ```bash
-   npm run dev
-   ```
+   npm start
 
 ---
 
-### 3. Frontend Installation and Run
+### Usage  
+Once the server starts, open your web browser and go to http://localhost:3000 to view the project in action.
 
-1. Navigate to the `Frontend` folder:
-   ```bash
-   cd ../Frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:5173](http://localhost:5173) in your web browser.
+### Screenshots  
+
+*Homepage*  
+![Image](https://github.com/user-attachments/assets/4367fe3d-99ba-4905-a35e-a8cef695ecf9)
+
+*Music Player*
+![Image](https://github.com/user-attachments/assets/3b044736-6779-4176-a617-c968af016973) 
+
 
 ---
 
-## Environment Variables
+### Our Other Social Platforms
 
-### Backend Configuration (`backend/.env`)
+- ![Untitled design (9)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/33ae95e1-c4d7-47d3-a160-90a6f060896b) Youtube - https://bit.ly/Youtubebtree
+- ![icon_logo](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/948141f8-8cdc-4ef1-9615-0fb06cd35574) Instagram - https://bit.ly/Instagrambtree 
+- ![Untitled design (10)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/51189b66-5f75-43fc-a992-dca4805152a0) Facebook - https://bit.ly/btreefacebookpage 
+- ![Untitled design (11)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/0177cf07-7034-41fb-a41c-e292b2eea000) LinkedIn - https://bit.ly/Linkedinbtree 
+- ![Untitled design (13)](https://github.com/varun-FSDeveloper/BTreeFlight/assets/153975508/81b02b10-6291-4aeb-8f14-d3f296f2698b) Twitter - https://bit.ly/Twitterbtree 
 
-| Variable | Description | Example / Default |
-| :--- | :--- | :--- |
-| `PORT` | Port number backend listens on | `5000` |
-| `DB_HOST` | MySQL server host | `localhost` |
-| `DB_PORT` | MySQL connection port | `3306` |
-| `DB_NAME` | MySQL database name | `spotify_clone` |
-| `DB_USER` | MySQL database user | `root` |
-| `DB_PASSWORD` | MySQL database password | `qwert9003594227Q!` |
-| `JWT_SECRET` | Secret key for JWT Access Tokens | *Random String* |
-| `JWT_REFRESH_SECRET` | Secret key for JWT Refresh Tokens | *Random String* |
-| `JWT_EXPIRES_IN` | Life of access tokens | `15m` |
-| `JWT_REFRESH_EXPIRES_IN` | Life of refresh tokens | `7d` |
-| `SPOTIFY_CLIENT_ID` | Spotify App Client ID | *Your Client ID* |
-| `SPOTIFY_CLIENT_SECRET` | Spotify App Client Secret | *Your Client Secret* |
-| `RESEND_API_KEY` | Resend API Key for sending emails | `re_placeholder` |
-| `FROM_EMAIL` | Sender email address for OTP | `onboarding@resend.dev` |
-| `FRONTEND_URL` | CORS allowed frontend URL | `http://localhost:5173` |
 
-### Frontend Configuration (`Frontend/.env`)
-
-| Variable | Description | Example / Default |
-| :--- | :--- | :--- |
-| `VITE_API_URL` | Root URL of backend API | `http://localhost:5000` |
-
----
-
-## Core API Endpoints
-
-### Authentication (`/api/auth`)
-- `POST /register` - Register a new user
-- `POST /login` - Sign in and get access & refresh tokens
-- `POST /logout` - Invalidate session refresh tokens
-- `POST /refresh-token` - Request new access token using a refresh token
-- `POST /forgot-password` - Email a 6-digit OTP code to reset password
-- `POST /verify-otp` - Verify code and save new password
-
-### Spotify Proxy (`/api/spotify`)
-- `GET /search?q=&type=` - Search songs, artists, and albums
-- `GET /featured-playlists` - Fetch featured playlists
-- `GET /new-releases` - Fetch new releases
-- `GET /track/:id` - Fetch track details by ID
-- `GET /artist/:id` - Fetch artist profile and top tracks
-- `GET /album/:id` - Fetch album tracks and info
-- `GET /recommendations` - Get track recommendations based on seed track IDs
-
-### Custom Playlists (`/api/playlists`)
-- `GET /` - List all user playlists
-- `POST /` - Create a new playlist
-- `GET /:id` - Get playlist track details
-- `PUT /:id` - Update playlist metadata
-- `DELETE /:id` - Delete playlist
-- `POST /:id/tracks` - Add song to playlist
-- `DELETE /:id/tracks/:trackId` - Remove song from playlist
-
-### Liked Songs (`/api/favorites`)
-- `GET /` - List all favorited songs
-- `POST /` - Like a track
-- `DELETE /:trackId` - Unlike a track
-
-### User Profile (`/api/user`)
-- `GET /profile` - Retrieve user profile details
-- `PUT /profile` - Update username and avatar
-- `PUT /change-password` - Change account password
-
----
-
-> [!NOTE]
-> **Dockerization and Kubernetes deployment coming in the next phase!**
+-- varunDev#

@@ -1,22 +1,25 @@
-import React, { useContext } from 'react'
-import Sidebar from './Sidebar'
-import Player from './Player'
-import Display from './Display'
-import { PlayerContext } from '../context/PlayerContext'
+import React, { useContext } from "react";
+import Sidebar from "./Sidebar";
+import Player from "./Player";
+import Display from "./Display";
+import Navbar from "./Navbar";
+import NowPlaying from "./NowPlaying";
+import { PlayerContext } from "../context/PlayerContext";
 
 const Home = () => {
+  const { showNowPlaying } = useContext(PlayerContext);
 
-  const {audioRef,track}= useContext(PlayerContext)
   return (
-    <div className='h-screen bg-black'>
-        <div className='h-[90%] flex'>
-            <Sidebar/>
-            <Display/>
-        </div>
-        <Player/>
-        <audio ref={audioRef} src={track.file} preload='auto'></audio>
+    <div className="h-screen bg-black flex flex-col overflow-hidden">
+      <Navbar />
+      <div className="flex flex-1 min-h-0">
+        <Sidebar />
+        <Display />
+        {showNowPlaying && <NowPlaying />}
+      </div>
+      <Player />
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

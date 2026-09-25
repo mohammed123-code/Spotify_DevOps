@@ -1,30 +1,35 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
+const { Sequelize } = require("sequelize");
 
-dotenv.config();
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'spotify_clone',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0
-});
-
-// Test connection
-(async () => {
-  try {
-    const connection = await pool.getConnection();
-    console.log('Database connected successfully to ' + (process.env.DB_NAME || 'spotify_clone'));
-    connection.release();
-  } catch (error) {
-    console.error('Database connection failed:', error.message);
+const sequelize = new Sequelize(
+  process.env.MYSQL_DATABASE,
+  process.env.MYSQL_USER,
+  process.env.MYSQL_PASSWORD,
+  {
+    host: process.env.MYSQL_HOST || "localhost",
+    port: process.env.MYSQL_PORT || 3306,
+    dialect: "mysql",
+    logging: false, // set to console.log to see SQL queries
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   }
-})();
+);
 
-export default pool;
+const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ MySQL Connected");
+
+    // Auto-create tables if they don't exist (safe — won't drop existing data)
+    await sequelize.sync({ alter: true });
+    console.log("✅ Tables synced");
+  } catch (error) {
+    console.error("❌ MySQL connection failed:", error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = { sequelize, connectDB };

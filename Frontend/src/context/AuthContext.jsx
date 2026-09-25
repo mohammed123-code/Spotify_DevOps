@@ -1,145 +1,55 @@
-import React, { createContext, useState, useEffect } from 'react';
-import api from '../api';
+import { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
-  // Check if user is logged in on load
+const AuthContextProvider = ({ children }) => {
+  const [user, setUser]         = useState(null);
+  const [token, setToken]       = useState(localStorage.getItem("spotify_token") || "");
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Verify token on mount
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        try {
-          const res = await api.get('/api/user/profile');
-          setUser(res.data);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Failed to restore auth session:', error);
-          localStorage.clear();
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
-
-    // Listen to global logout event triggered by axios interceptor
-    const handleLogoutEvent = () => {
-      setUser(null);
-      setIsAuthenticated(false);
-    };
-    window.addEventListener('auth_logout', handleLogoutEvent);
-
-    return () => {
-      window.removeEventListener('auth_logout', handleLogoutEvent);
-    };
-  }, []);
-
-  // Login
-  const login = async (email, password) => {
-    try {
-      const res = await api.post('/api/auth/login', { email, password });
-      const { accessToken, refreshToken, user: userData } = res.data;
-      
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      setUser(userData);
-      setIsAuthenticated(true);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Login failed. Please check your credentials.'
-      };
-    }
-  };
-
-  // Register
-  const register = async (username, email, password) => {
-    try {
-      const res = await api.post('/api/auth/register', { username, email, password });
-      const { accessToken, refreshToken, user: userData } = res.data;
-
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      setUser(userData);
-      setIsAuthenticated(true);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Registration failed.'
-      };
-    }
-  };
-
-  // Logout
-  const logout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
+    const verifyToken = async () => {
+      if (!token) { setAuthLoading(false); return; }
       try {
-        await api.post('/api/auth/logout', { refreshToken });
-      } catch (error) {
-        console.error('Logout API call failed:', error);
+        const res = await axios.get(`${backendUrl}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data.user);
+      } catch {
+        // Token invalid/expired — clear it
+        localStorage.removeItem("spotify_token");
+        setToken("");
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
       }
-    }
-    localStorage.clear();
+    };
+    verifyToken();
+  }, [token]);
+
+  const login = (userData, jwtToken) => {
+    setUser(userData);
+    setToken(jwtToken);
+    localStorage.setItem("spotify_token", jwtToken);
+  };
+
+  const logout = () => {
     setUser(null);
-    setIsAuthenticated(false);
-  };
-
-
-
-  // Update profile
-  const updateProfile = async (username, profileImage) => {
-    try {
-      const res = await api.put('/api/user/profile', { username, profile_image: profileImage });
-      setUser(prev => ({
-        ...prev,
-        username: res.data.user.username,
-        profile_image: res.data.user.profile_image
-      }));
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to update profile.'
-      };
-    }
-  };
-
-  // Change password
-  const changePassword = async (currentPassword, newPassword) => {
-    try {
-      await api.put('/api/user/change-password', { currentPassword, newPassword });
-      // Changing password automatically logouts other devices, but we can keep current session
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Failed to change password.'
-      };
-    }
+    setToken("");
+    localStorage.removeItem("spotify_token");
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      loading,
-      login,
-      register,
-      logout,
-      updateProfile,
-      changePassword
-    }}>
+    <AuthContext.Provider value={{ user, token, authLoading, login, logout, backendUrl }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContextProvider;
